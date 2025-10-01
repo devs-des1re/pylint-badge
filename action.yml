@@ -1,26 +1,18 @@
-name: "Pylint GH-Pages Badge"
-description: "Generates a pylint badge and publishes to gh-pages"
-inputs:
-  path:
-    description: "Path to lint"
-    required: false
-    default: "."
-runs:
-  using: "composite"
-  steps:
-    - run: pip install pylint
-      shell: bash
-    - run: python $GITHUB_ACTION_PATH/main.py ${{ inputs.path }}
-      shell: bash
-    - run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git checkout -B gh-pages || git checkout --orphan gh-pages
-        mkdir -p .
-        cp -r badges/* .
-        git add .
-        git commit -m "Update pylint badge" || echo "No changes"
-        git push -u origin gh-pages --force
-      shell: bash
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: devs-des1re/pylint-badge@v1
+        id: pylint
+      - name: Push badge to gh-pages
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -B gh-pages
+          cp -r badges/* .
+          git add .
+          git commit -m "Update pylint badge" || echo "No changes"
+          git push -u origin gh-pages --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
