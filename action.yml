@@ -5,6 +5,9 @@ inputs:
     description: "Path to lint"
     required: false
     default: "."
+  github_token:
+    description: "GitHub token to push to gh-pages"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -20,5 +23,5 @@ runs:
         cp -r badges/* .
         git add .
         git commit -m "Update pylint badge" || echo "No changes"
-        git push -u origin gh-pages --force
+        git push -u https://x-access-token:${{ inputs.github_token }}@github.com/${GITHUB_REPOSITORY}.git gh-pages --force
       shell: bash
