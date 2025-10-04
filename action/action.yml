@@ -59,6 +59,7 @@ runs:
 
         with open(output_file, "w") as f:
             f.write(badge_svg)
+      shell: bash
 
     - name: Commit badge
       run: |
@@ -67,3 +68,4 @@ runs:
         git add ${{ inputs.output_file }}
         git commit -m "Update Pylint badge" || echo "No changes to commit"
         git push
+      shell: bash
