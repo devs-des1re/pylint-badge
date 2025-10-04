@@ -13,43 +13,37 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Checkout the repository
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # Set up Python
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.11"
 
+    # Install Pylint
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pylint
       shell: bash
 
-    - name: Run Pylint and create JSON badge
+    # Run Pylint and generate JSON badge
+    - name: Run Pylint and create JSON
       run: |
         # Run Pylint and extract score
         SCORE=$(pylint . --exit-zero | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
+        SCORE=${SCORE:-0.0}
 
-        if [[ "$SCORE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-            if (( $(echo "$SCORE > 0" | bc -l) )); then
-                echo "Score is acceptable"
-            else
-                echo "Score is low, but workflow will not fail"
-            fi
-        else
-            echo "Unable to parse score, defaulting to 0"
-            SCORE=0
-        fi
-
-        # Decide color based on score
+        # Determine badge color
         if (( $(echo "$SCORE >= 9.0" | bc -l) )); then COLOR="brightgreen"
         elif (( $(echo "$SCORE >= 7.0" | bc -l) )); then COLOR="green"
         elif (( $(echo "$SCORE >= 5.0" | bc -l) )); then COLOR="yellow"
         else COLOR="red"; fi
 
-        # Build nested folder path
+        # Build nested folder path: badges/<user>/<repo>/<branch>
         USER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
         REPO=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
         BRANCH=$(echo $GITHUB_REF_NAME)
@@ -65,9 +59,10 @@ runs:
           "color": "$COLOR"
         }
         EOF
-        echo "Badge written to $DIR/${{ inputs.output_file }}"
+        echo "Badge JSON written to $DIR/${{ inputs.output_file }}"
       shell: bash
 
+    # Commit JSON badge back to the repo
     - name: Commit JSON badge
       run: |
         git config --local user.email "action@github.com"
@@ -76,6 +71,7 @@ runs:
         git commit -m "Update Pylint JSON badge" || echo "No changes to commit"
       shell: bash
 
+    # Push changes using provided token
     - name: Push badge to repo
       run: |
         git push https://x-access-token:${{ inputs.gh_token }}@github.com/${GITHUB_REPOSITORY}.git
