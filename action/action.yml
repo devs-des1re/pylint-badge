@@ -1,0 +1,13 @@
+name: "My Custom Action"
+description: "This is my own action that prints a message"
+runs:
+  using: "node16"
+  main: "index.js"
+inputs:
+  message:
+    description: "Message to print"
+    required: true
+    default: "Hello from my action!"
+outputs:
+  outputMessage:
+    description: "Output message after action runs"
