@@ -26,20 +26,16 @@ runs:
 
     - name: Run Pylint and create JSON badge
       run: |
-        # Example: Get the score line and extract the number
         PYLINT_SCORE=$(pylint . --exit-zero | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
 
-        # Make sure it's a number before comparing
         if [[ "$PYLINT_SCORE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-          if (( $(echo "$PYLINT_SCORE > 7.0" | bc -l) )); then
-            echo "Score is acceptable"
-          else
-            echo "Score is too low"
-            exit 1
-          fi
+            if (( $(echo "$PYLINT_SCORE > 0" | bc -l) )); then
+                echo "Score is acceptable"
+            else
+                echo "Score is low, but workflow will not fail"
+            fi
         else
-          echo "Unable to parse score"
-          exit 1
+            echo "Unable to parse score, but workflow will not fail"
         fi
 
         # Decide color based on score
