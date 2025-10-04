@@ -1,3 +1,4 @@
+"""Doc"""
 import random
 
 def main():
