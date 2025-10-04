@@ -1,13 +1,62 @@
-name: "My Custom Action"
-description: "This is my own action that prints a message"
+name: "Dynamic Pylint Badge"
+description: "Generates a dynamic SVG badge for Pylint results and commits it to the repo."
+author: "devs-des1re"
 inputs:
-  message:
-    description: "Message to print"
+  label:
+    description: "Left text of the badge"
     required: true
-    default: "Hello from my action!"
-outputs:
-  outputMessage:
-    description: "Output message after action runs"
+    default: "Pylint"
+  status:
+    description: "Right text of the badge"
+    required: true
+    default: "passing"
+  left_color:
+    description: "Left color of the badge"
+    required: false
+    default: "#555"
+  right_color:
+    description: "Right color of the badge"
+    required: false
+    default: "#4c1"
+  output_file:
+    description: "Filename for the generated badge"
+    required: false
+    default: "badge.svg"
+
 runs:
-  using: "node16"
-  main: "index.js"
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install pybadges
+      run: pip install pybadges
+
+    - name: Generate badge
+      shell: python
+      run: |
+        import pybadges
+        import os
+        label = os.getenv("INPUT_LABEL")
+        status = os.getenv("INPUT_STATUS")
+        left_color = os.getenv("INPUT_LEFT_COLOR")
+        right_color = os.getenv("INPUT_RIGHT_COLOR")
+        output_file = os.getenv("INPUT_OUTPUT_FILE")
+        badge_svg = pybadges.badge(
+            left_text=label,
+            right_text=status,
+            left_color=left_color,
+            right_color=right_color
+        )
+        with open(output_file, "w") as f:
+            f.write(badge_svg)
+
+    - name: Commit badge
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ${{ inputs.output_file }}
+        git commit -m "Update badge" || echo "No changes to commit"
+        git push

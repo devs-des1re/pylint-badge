@@ -1,23 +1,22 @@
-name: My Workflow
+name: Generate Pylint Badge
 
 on:
   push:
     branches:
       - main
+  pull_request:
 
 jobs:
-  custom-action-job:
+  badge:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: |
-          cd action
-          npm install
-
-      - name: Run My Custom Action
-        uses: ./action
+      - name: Generate dynamic badge
+        uses: ./my-action
         with:
-          message: "Hello from my action!"
+          label: "Pylint"
+          status: "passing"
+          left_color: "#555"
+          right_color: "#4c1"
+          output_file: "badge.svg"

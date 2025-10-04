@@ -1,0 +1,1 @@
+![Badge](https://img.shields.io/github/actions/workflow/status/devs-des1re/pylint-badge/workflow.yml)
