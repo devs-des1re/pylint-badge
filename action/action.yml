@@ -55,11 +55,14 @@ runs:
       shell: bash
 
     - name: Commit JSON badge
-      - name: Push badge to repo
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add pylint-badge.svg
         git commit -m "Update Pylint JSON badge"
+      shell: bash
+
+    - name: Push badge to repo
+      run: |
         git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/devs-des1re/pylint-badge.git
       shell: bash
