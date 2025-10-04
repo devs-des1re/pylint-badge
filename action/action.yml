@@ -6,6 +6,9 @@ inputs:
     description: "JSON file to create for the badge"
     required: false
     default: "pylint.json"
+  gh_token:
+    description: "GitHub Token for pushing badge"
+    required: true
 
 runs:
   using: "composite"
@@ -26,16 +29,17 @@ runs:
 
     - name: Run Pylint and create JSON badge
       run: |
-        PYLINT_SCORE=$(pylint . --exit-zero | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
+        SCORE=$(pylint . --exit-zero | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
 
-        if [[ "$PYLINT_SCORE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-            if (( $(echo "$PYLINT_SCORE > 0" | bc -l) )); then
+        if [[ "$SCORE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            if (( $(echo "$SCORE > 0" | bc -l) )); then
                 echo "Score is acceptable"
             else
                 echo "Score is low, but workflow will not fail"
             fi
         else
             echo "Unable to parse score, but workflow will not fail"
+            SCORE=0
         fi
 
         # Decide color based on score
@@ -58,11 +62,11 @@ runs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add pylint-badge.svg
-        git commit -m "Update Pylint JSON badge"
+        git add ${{ inputs.output_file }}
+        git commit -m "Update Pylint JSON badge" || echo "No changes to commit"
       shell: bash
 
     - name: Push badge to repo
       run: |
-        git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/devs-des1re/pylint-badge.git
+        git push https://x-access-token:${{ inputs.gh_token }}@github.com/devs-des1re/pylint-badge.git
       shell: bash
