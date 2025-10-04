@@ -58,13 +58,13 @@ runs:
 
         # Write JSON badge
         cat > "$DIR/${{ inputs.output_file }}" <<EOF
-{
-  "schemaVersion": 1,
-  "label": "Pylint",
-  "message": "$SCORE",
-  "color": "$COLOR"
-}
-EOF
+        {
+          "schemaVersion": 1,
+          "label": "Pylint",
+          "message": "$SCORE",
+          "color": "$COLOR"
+        }
+        EOF
         echo "Badge written to $DIR/${{ inputs.output_file }}"
       shell: bash
 
