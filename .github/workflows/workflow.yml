@@ -1,4 +1,4 @@
-name: Generate Pylint Badge
+name: Pylint Badge Workflow
 
 on:
   push:
@@ -7,16 +7,12 @@ on:
   pull_request:
 
 jobs:
-  badge:
+  pylint-badge:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Generate dynamic badge
-        uses: ./my-action
+      - name: Generate Pylint Badge
+        uses: ./action
         with:
-          label: "Pylint"
-          status: "passing"
-          left_color: "#555"
-          right_color: "#4c1"
-          output_file: "badge.svg"
+          output_file: "pylint-badge.svg"
