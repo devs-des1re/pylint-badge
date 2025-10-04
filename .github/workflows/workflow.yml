@@ -1,4 +1,6 @@
 name: Pylint Badge Workflow
+permissions:
+  contents: write
 
 on:
   push:
