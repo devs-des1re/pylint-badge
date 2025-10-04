@@ -13,6 +13,6 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Generate Pylint Badge
-        uses: ./action
+        uses: action
         with:
           output_file: "pylint-badge.svg"
