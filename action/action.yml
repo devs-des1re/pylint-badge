@@ -27,7 +27,7 @@ runs:
     - name: Run Pylint and get score
       id: pylint
       run: |
-        SCORE=$(pylint . --exit-zero | tail -n 1 | grep -o "[0-9]\+\(\.[0-9]\+\)?")
+        SCORE=$(pylint . --exit-zero | grep 'Your code has been rated at' | grep -o '[0-9.]\+\/10' | cut -d'/' -f1)
         echo "score=$SCORE" >> $GITHUB_OUTPUT
       shell: bash
 
