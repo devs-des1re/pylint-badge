@@ -1,74 +1,29 @@
-name: "Pylint Badge Generator"
-description: "Runs Pylint on your repo, generates a badge with the score, and commits it."
-author: "devs-des1re"
-inputs:
-  output_file:
-    description: "Filename for the generated badge"
-    required: false
-    default: "pylint-badge.svg"
+name: Pylint Badge
 
-runs:
-  using: "composite"
-  steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
+jobs:
+  pylint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pylint pybadges
-      shell: bash
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: Run Pylint and get score
-      id: pylint
-      run: |
-        SCORE=$(pylint . --exit-zero | grep 'Your code has been rated at' | grep -o '[0-9.]\+\/10' | cut -d'/' -f1)
-        echo "score=$SCORE" >> $GITHUB_OUTPUT
-      shell: bash
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint
 
-    - name: Generate badge
-      run: |
-        python <<EOF
-        import pybadges
-        import os
-
-        score = os.environ.get("score", "0.0")
-        output_file = "${{ inputs.output_file }}"
-
-        s = float(score)
-        if s >= 9.0:
-            color = "brightgreen"
-        elif s >= 7.0:
-            color = "green"
-        elif s >= 5.0:
-            color = "yellow"
-        else:
-            color = "red"
-
-        badge_svg = pybadges.badge(
-            left_text="Pylint",
-            right_text=score,
-            left_color="#555",
-            right_color=color
-        )
-
-        with open(output_file, "w") as f:
-            f.write(badge_svg)
-        EOF
-      shell: bash
-      env:
-        score: ${{ steps.pylint.outputs.score }}
-
-    - name: Commit badge
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add "${{ inputs.output_file }}"
-        git commit -m "Update Pylint badge" || echo "No changes to commit"
-        git push
-      shell: bash
+      - name: Run Pylint and calculate score
+        id: pylint
+        run: |
+          SCORE=$(pylint . --exit-zero | tail -n 1 | grep -o "[0-9]\+\(\.[0-9]\+\)\?")
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
