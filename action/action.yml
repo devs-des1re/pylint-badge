@@ -1,8 +1,18 @@
-name: "Pylint Badge Composite"
-description: "Run Pylint and calculate score"
+name: "Pylint Badge Action"
+description: "Runs Pylint and generates JSON for Shields.io badge"
+author: "devs-des1re"
+inputs:
+  output_file:
+    description: "JSON file to create for the badge"
+    required: false
+    default: "pylint.json"
+
 runs:
   using: "composite"
   steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -14,9 +24,32 @@ runs:
         pip install pylint
       shell: bash
 
-    - name: Run Pylint and calculate score
-      id: pylint
+    - name: Run Pylint and create JSON badge
       run: |
-        SCORE=$(pylint . --exit-zero | awk '/Your code has been rated at/ {print $7}' | cut -d'/' -f1)
-        echo "score=$SCORE" >> $GITHUB_OUTPUT
+        SCORE=$(pylint . --exit-zero | tail -n 1 | grep -o "[0-9]\+\(\.[0-9]\+\)\?")
+        SCORE=${SCORE:-0.0}
+
+        # Decide color based on score
+        if (( $(echo "$SCORE >= 9.0" | bc -l) )); then COLOR="brightgreen"
+        elif (( $(echo "$SCORE >= 7.0" | bc -l) )); then COLOR="green"
+        elif (( $(echo "$SCORE >= 5.0" | bc -l) )); then COLOR="yellow"
+        else COLOR="red"; fi
+
+        cat > ${{ inputs.output_file }} <<EOF
+{
+  "schemaVersion": 1,
+  "label": "Pylint",
+  "message": "$SCORE",
+  "color": "$COLOR"
+}
+EOF
+      shell: bash
+
+    - name: Commit JSON badge
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ${{ inputs.output_file }}
+        git commit -m "Update Pylint JSON badge" || echo "No changes to commit"
+        git push
       shell: bash
