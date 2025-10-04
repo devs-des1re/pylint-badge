@@ -26,7 +26,12 @@ runs:
 
     - name: Run Pylint and create JSON badge
       run: |
-        SCORE=$(pylint . --exit-zero | tail -n 1 | grep -o "[0-9]\+\(\.[0-9]\+\)\?")
+        # Run pylint and capture its output
+        PYLINT_OUTPUT=$(pylint . --exit-zero)
+        echo "$PYLINT_OUTPUT"
+
+        # Extract the score from the last line that contains 'Your code has been rated at'
+        SCORE=$(echo "$PYLINT_OUTPUT" | grep "Your code has been rated at" | grep -o "[0-9]\+\(\.[0-9]\+\)\?")
         SCORE=${SCORE:-0.0}
 
         # Decide color based on score
