@@ -1,4 +1,4 @@
-name: Pylint Badge
+name: "Pylint Badge Composite"
 
 on:
   push:
