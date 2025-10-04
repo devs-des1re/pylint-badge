@@ -29,6 +29,7 @@ runs:
 
     - name: Run Pylint and create JSON badge
       run: |
+        # Run Pylint and extract score
         SCORE=$(pylint . --exit-zero | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
 
         if [[ "$SCORE" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
@@ -38,7 +39,7 @@ runs:
                 echo "Score is low, but workflow will not fail"
             fi
         else
-            echo "Unable to parse score, but workflow will not fail"
+            echo "Unable to parse score, defaulting to 0"
             SCORE=0
         fi
 
@@ -48,25 +49,34 @@ runs:
         elif (( $(echo "$SCORE >= 5.0" | bc -l) )); then COLOR="yellow"
         else COLOR="red"; fi
 
-        cat > ${{ inputs.output_file }} <<EOF
-        {
-          "schemaVersion": 1,
-          "label": "Pylint",
-          "message": "$SCORE",
-          "color": "$COLOR"
-        }
-        EOF
+        # Build nested folder path
+        USER=$(echo $GITHUB_REPOSITORY | cut -d'/' -f1)
+        REPO=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
+        BRANCH=$(echo $GITHUB_REF_NAME)
+        DIR="badges/$USER/$REPO/$BRANCH"
+        mkdir -p "$DIR"
+
+        # Write JSON badge
+        cat > "$DIR/${{ inputs.output_file }}" <<EOF
+{
+  "schemaVersion": 1,
+  "label": "Pylint",
+  "message": "$SCORE",
+  "color": "$COLOR"
+}
+EOF
+        echo "Badge written to $DIR/${{ inputs.output_file }}"
       shell: bash
 
     - name: Commit JSON badge
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add ${{ inputs.output_file }}
+        git add badges/
         git commit -m "Update Pylint JSON badge" || echo "No changes to commit"
       shell: bash
 
     - name: Push badge to repo
       run: |
-        git push https://x-access-token:${{ inputs.gh_token }}@github.com/devs-des1re/pylint-badge.git
+        git push https://x-access-token:${{ inputs.gh_token }}@github.com/${GITHUB_REPOSITORY}.git
       shell: bash
