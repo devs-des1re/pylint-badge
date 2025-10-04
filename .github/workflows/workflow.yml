@@ -4,16 +4,20 @@ on:
   push:
     branches:
       - main
-  pull_request:
 
 jobs:
-  run-my-action:
+  custom-action-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Run my custom action
+      - name: Install dependencies
+        run: |
+          cd action
+          npm install
+
+      - name: Run My Custom Action
         uses: ./action
         with:
-          message: "Hello, GitHub Actions!"
+          message: "Hello from my action!"
