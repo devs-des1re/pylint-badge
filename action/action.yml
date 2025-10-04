@@ -36,13 +36,13 @@ runs:
         else COLOR="red"; fi
 
         cat > ${{ inputs.output_file }} <<EOF
-{
-  "schemaVersion": 1,
-  "label": "Pylint",
-  "message": "$SCORE",
-  "color": "$COLOR"
-}
-EOF
+        {
+          "schemaVersion": 1,
+          "label": "Pylint",
+          "message": "$SCORE",
+          "color": "$COLOR"
+        }
+        EOF
       shell: bash
 
     - name: Commit JSON badge
